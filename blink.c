@@ -25,7 +25,6 @@ void printNumber(int number){
   } else if(number == 1) {
 PORTC = (one);  waitDelay();
   
-
 }else if(number ==2){
 PORTC = (two); waitDelay();
 
