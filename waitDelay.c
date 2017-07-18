@@ -3,6 +3,6 @@
 #include <util/delay.h>
 #include "waitDelay.h"
 
-void waitDelay(){
+void waitDelay(void){
   _delay_ms(200);
 }

@@ -1,4 +1,4 @@
-
+#define F_CPU 11059200UL
 #include <stdlib.h>
 #include <stdio.h>
 #include <avr/io.h>
@@ -6,6 +6,10 @@
 #include <util/delay.h>
 #include "tcn75.h"
 #include "uart.h"
+#include "printNumber.h"
+#include "waitDelay.h"
+#include "printNumberDot.h"
+
 
 int main(void)
 {
@@ -13,19 +17,18 @@ int main(void)
 	uint8_t cfg;
 	char *string;
 	char *string2;
+	float lastDigit;
 
 	string = malloc(80);
 
+	/* Initializing LED 7segment*/
+	DDRC=0xFF;
 
-	DDRF = (1<<PF3); 
-	PORTF = 0x08;
 	tcn75_init();
 	uart_init(0);
-	uart_printstrn(0, "\nPress SW2 to measure the temperature");
+	uart_printstrn(0, "\nTCN75a Temperature Sensor");
 
 	while(1) {
-		loop_until_bit_is_clear(PINF, PF3);
-		uart_printstrn(0, "click");
 
 		cfg = 255;
 
@@ -44,11 +47,20 @@ int main(void)
 		} else {
 			uart_printstrn(0, "temp");
 			string = dtostrf(temp, 3, 5, string);
-			string2= strcat(string," °C");
+			string2= strcat(string,"°C");
 			uart_printstrn(0, string2);
-		}
+			
+                        lastDigit=fmod(temp,10);
 
-		_delay_ms(1000);
+
+			if (temp >= 30){
+                          printNumberDot(lastDigit);
+		}
+			else {
+			  printNumber(lastDigit);
+			}
+		}
+		_delay_ms(2000);
 	}
 
 	free(string);

@@ -1,1 +1,1 @@
-void waitDelay();
+void waitDelay(void);
