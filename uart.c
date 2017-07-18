@@ -104,5 +104,5 @@ void uart_printstr(const uint8_t port, const char *s)
 void uart_printstrn(const uint8_t port, const char *s)
 {
 	uart_printstr(port, s);
-	uart_putchar(port, '\n');
+
 }
