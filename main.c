@@ -1,63 +1,56 @@
-#define F_CPU 11059200UL
+
+#include <stdlib.h>
+#include <stdio.h>
 #include <avr/io.h>
+#include <string.h>
 #include <util/delay.h>
-#include "printNumber.h"
+#include "tcn75.h"
+#include "uart.h"
+
+int main(void)
+{
+	float temp;
+	uint8_t cfg;
+	char *string;
+	char *string2;
+
+	string = malloc(80);
 
 
-int main (void) {
+	DDRF = (1<<PF3); 
+	PORTF = 0x08;
+	tcn75_init();
+	uart_init(0);
+	uart_printstrn(0, "\nPress SW2 to measure the temperature");
 
-  //Setup
-   DDRC = 0xFF;
+	while(1) {
+		loop_until_bit_is_clear(PINF, PF3);
+		uart_printstrn(0, "click");
 
+		cfg = 255;
 
-   DDRF = (1<<PF3); //sw2
-   PORTF = 0x08;
+		if (tcn75_read_config_reg(&cfg)) {
+			uart_printstrn(0, "Error reading conf reg!");
+		} else {
+			uart_printstrn(0, "Config reg in hex");
+			string = itoa(cfg, string, 16);
+			uart_printstrn(0, string);
+		}
 
-   DDRG = (1<<PG3); //sw3
-   PORTG = 0x08;
+		temp = tcn75_read_temperature();
 
-   DDRG = (1<<PG4); //sw4
-   PORTG = 0x10;
+		if (temp == -99) {
+			uart_printstrn(0, "Error reading temp!");
+		} else {
+			uart_printstrn(0, "temp");
+			string = dtostrf(temp, 3, 5, string);
+			string2= strcat(string," °C");
+			uart_printstrn(0, string2);
+		}
 
-   DDRE = (1<<PE7); //sw5
-   PORTE = 0x80;
-
-   int num=0;
-
-   //Loop  
-   while(1) {
-
-
-      if (bit_is_clear(PINE,PE7)){
-
-	if (num==9){
-	  num=0;
+		_delay_ms(1000);
 	}
-	
-	else {
-	  num++;
-	}
-	printNumber(num);
 
-
-      }
-      if(bit_is_clear(PING,PG3)){
-	if (num==0){
-	  num=9;
-	}
-	else { 
-	  num--;
-	}
-	printNumber(num);
-
-      }
-
-      if (bit_is_clear(PINF,PF3)){
-	num=0;
-	printNumber(num);
-      }
-      
-      
-   }
-     
+	free(string);
+	return(0);
 }
