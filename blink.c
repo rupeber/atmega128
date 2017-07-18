@@ -1,7 +1,6 @@
 #define F_CPU 11059200UL
 #include <avr/io.h>
 #include <util/delay.h>
-
 #define zero 0b10000001
 #define one 0b11010111
 #define two 0b10100100
