@@ -1,13 +1,15 @@
 #define F_CPU 11059200UL
 #include <stdlib.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <avr/io.h>
 #include <string.h>
 #include <util/delay.h>
 #include "tcn75.h"
 #include "uart.h"
-#include "printNumber.h"
 #include "waitDelay.h"
+#include "printLed.h"
+#include "printNumber.h"
 #include "printNumberDot.h"
 
 int main(void)
@@ -16,6 +18,8 @@ int main(void)
 	uint8_t cfg;
 	char *string;
 	char *string2;
+	bool flag;
+	flag = 1;
 	float lastDigit;
 
 
@@ -41,6 +45,12 @@ int main(void)
 	uart_printstrn(0, "\nPress SW5 to manual mode or SW3 automatic mode");
 
 	while(1) {
+	  
+	  if (bit_is_clear(PING,PG4)){
+	    flag = !flag;
+	    _delay_ms(250);
+	  }
+
 	  if(bit_is_clear(PINE, PE7)) {
 		uart_printstrn(0, "\nManual mode");
 
@@ -63,16 +73,19 @@ int main(void)
 			string = dtostrf(temp, 3, 5, string);
 			string2= strcat(string," °C");
 			uart_printstrn(0, string2);
-
                         lastDigit=fmod(temp,10);
 
-			if (temp >= 30){
-                          printNumberDot(lastDigit);
-		}
+			if(flag==0){
+			printLed(temp);
+			}
 			else {
+			  if (temp >= 30){
+                          printNumberDot(lastDigit);
+			  }
+			  else {
 			  printNumber(lastDigit);
-			}			
-
+			  }
+			}
 		}
 		_delay_ms(250);
 	  }
@@ -82,6 +95,11 @@ int main(void)
 
 	     do {
 		cfg = 255;
+
+		if (bit_is_clear(PING,PG4)){
+		  flag = !flag;
+		  _delay_ms(250);
+		}
 
 		if (tcn75_read_config_reg(&cfg)) {
 			uart_printstrn(0, "Error reading conf reg! ");
@@ -100,18 +118,22 @@ int main(void)
 			string = dtostrf(temp, 3, 5, string);
 			string2= strcat(string," °C");
 			uart_printstrn(0, string2);
-
                         lastDigit=fmod(temp,10);
 
-			if (temp >= 30){
-                          printNumberDot(lastDigit);
-		}
+			if(flag==0){
+			printLed(temp);
+			}
 			else {
+			  if (temp >= 30){
+                          printNumberDot(lastDigit);
+			  }
+			  else {
 			  printNumber(lastDigit);
-			}			
+			  }
+			}
 
 		}
-		_delay_ms(500);
+		_delay_ms(250);
 	     }while (!(bit_is_clear(PINF, PF3)));
 	   }			 
 	}
